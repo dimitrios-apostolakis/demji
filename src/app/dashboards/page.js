@@ -11,7 +11,7 @@ function maskKeyForDisplay(fullKey) {
 export default function Dashboard() {
   const [apiKeys, setApiKeys] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [formData, setFormData] = useState({ name: '', type: 'dev' });
+  const [formData, setFormData] = useState({ name: '', type: 'dev', limitEnabled: false, limit: 1000 });
 
   useEffect(() => {
     setApiKeys([
@@ -36,7 +36,7 @@ export default function Dashboard() {
     };
     setApiKeys((prev) => [newKey, ...prev]);
     setShowAddForm(false);
-    setFormData({ name: '', type: 'dev' });
+    setFormData({ name: '', type: 'dev', limitEnabled: false, limit: 1000 });
   };
 
   const copy = async (text) => {
@@ -119,25 +119,60 @@ export default function Dashboard() {
                     <div className="font-semibold text-slate-900">API Keys</div>
                     <div className="text-sm text-slate-500">The key is used to authenticate your requests to the Research API.</div>
                   </div>
-                  <button onClick={() => setShowAddForm((v) => !v)} className="inline-flex items-center justify-center h-9 px-3 rounded-md bg-slate-900 text-white text-sm font-medium">+
+                  <button onClick={() => setShowAddForm(true)} className="inline-flex items-center justify-center h-9 px-3 rounded-md bg-slate-900 text-white text-sm font-medium">+
                   </button>
                 </div>
               </div>
 
               {showAddForm && (
-                <form onSubmit={handleCreate} className="px-4 md:px-6 pb-4 md:pb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Name" className="h-10 px-3 rounded-md border border-slate-300" />
-                    <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="h-10 px-3 rounded-md border border-slate-300">
-                      <option value="dev">dev</option>
-                      <option value="prod">prod</option>
-                    </select>
-                    <div className="flex gap-2">
-                      <button className="h-10 px-4 rounded-md bg-slate-900 text-white text-sm font-medium">Create</button>
-                      <button type="button" onClick={() => setShowAddForm(false)} className="h-10 px-4 rounded-md border border-slate-300 text-sm">Cancel</button>
-                    </div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowAddForm(false)}>
+                  <div className="absolute inset-0 bg-slate-900/50" />
+                  <div className="relative z-10 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
+                    <form onSubmit={handleCreate} className="rounded-xl border border-slate-200 bg-white shadow-xl">
+                      <div className="px-6 pt-6 pb-2">
+                        <div className="text-lg font-semibold text-slate-900">Create a new API key</div>
+                        <div className="text-sm text-slate-500 mt-1">Enter a name and limit for the new API key.</div>
+                      </div>
+                      <div className="px-6 pb-6 space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700">Key Name</label>
+                          <input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Key Name" className="mt-1 w-full h-10 px-3 rounded-md border border-slate-300" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-slate-700">Key Type</div>
+                          <div className="mt-2 grid grid-cols-2 gap-3">
+                            <label className={`flex items-center gap-3 rounded-md border p-3 cursor-pointer ${formData.type === 'dev' ? 'border-slate-900 ring-1 ring-slate-900/10' : 'border-slate-200 hover:border-slate-300'}`}> 
+                              <input type="radio" name="key-type" checked={formData.type === 'dev'} onChange={() => setFormData({ ...formData, type: 'dev' })} />
+                              <div>
+                                <div className="text-sm font-medium text-slate-900">Development</div>
+                                <div className="text-xs text-slate-500">Rate limited to 100 requests/minute</div>
+                              </div>
+                            </label>
+                            <label className={`flex items-center gap-3 rounded-md border p-3 cursor-not-allowed bg-slate-50 ${formData.type === 'prod' ? 'border-slate-900 ring-1 ring-slate-900/10' : 'border-slate-200'}`}> 
+                              <input type="radio" name="key-type" disabled checked={formData.type === 'prod'} onChange={() => setFormData({ ...formData, type: 'prod' })} />
+                              <div>
+                                <div className="text-sm font-medium text-slate-900">Production</div>
+                                <div className="text-xs text-slate-500">Rate limited to 1,000 requests/minute</div>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="inline-flex items-center gap-2 text-sm text-slate-700">
+                            <input type="checkbox" checked={formData.limitEnabled} onChange={(e) => setFormData({ ...formData, limitEnabled: e.target.checked })} />
+                            Limit monthly usage
+                          </label>
+                          <input type="number" min="1" value={formData.limit} onChange={(e) => setFormData({ ...formData, limit: Number(e.target.value) })} disabled={!formData.limitEnabled} className="mt-2 w-full h-10 px-3 rounded-md border border-slate-300 disabled:bg-slate-100" />
+                          <div className="mt-1 text-xs text-slate-500">If the combined usage of all your keys exceeds your plan's limit, all requests will be rejected.</div>
+                        </div>
+                      </div>
+                      <div className="px-6 pb-6 flex items-center gap-3">
+                        <button className="h-10 px-4 rounded-md bg-slate-900 text-white text-sm font-medium">Create</button>
+                        <button type="button" onClick={() => setShowAddForm(false)} className="h-10 px-4 rounded-md border border-slate-300 text-sm">Cancel</button>
+                      </div>
+                    </form>
                   </div>
-                </form>
+                </div>
               )}
 
               <div className="overflow-x-auto">
