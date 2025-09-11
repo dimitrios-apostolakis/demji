@@ -31,6 +31,9 @@ export default function Dashboard() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', type: 'dev', limitEnabled: false, limit: 1000 });
   const [visibleKeys, setVisibleKeys] = useState({});
+  const [editingKeyId, setEditingKeyId] = useState(null);
+  const [editingKeyValue, setEditingKeyValue] = useState('');
+  const [editingKeyName, setEditingKeyName] = useState('');
 
   useEffect(() => {
     setApiKeys([
@@ -63,6 +66,26 @@ export default function Dashboard() {
   };
 
   const remove = (id) => setApiKeys((prev) => prev.filter((k) => k.id !== id));
+
+  const startEditKey = (keyObj) => {
+    setEditingKeyId(keyObj.id);
+    setEditingKeyValue(keyObj.key);
+    setEditingKeyName(keyObj.name);
+  };
+
+  const cancelEditKey = () => {
+    setEditingKeyId(null);
+    setEditingKeyValue('');
+    setEditingKeyName('');
+  };
+
+  const saveEditKey = () => {
+    if (!editingKeyId) return;
+    setApiKeys((prev) => prev.map((k) => (k.id === editingKeyId ? { ...k, key: editingKeyValue } : k)));
+    setEditingKeyId(null);
+    setEditingKeyValue('');
+    setEditingKeyName('');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -194,6 +217,28 @@ export default function Dashboard() {
                 </div>
               )}
 
+              {editingKeyId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={cancelEditKey}>
+                  <div className="absolute inset-0 bg-slate-900/50" />
+                  <div className="relative z-10 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
+                    <form onSubmit={(e) => { e.preventDefault(); saveEditKey(); }} className="rounded-xl border border-slate-200 bg-white shadow-xl">
+                      <div className="px-6 pt-6 pb-2">
+                        <div className="text-lg font-semibold text-slate-900">Edit API key</div>
+                        <div className="text-sm text-slate-500 mt-1">Update the key value for <span className="font-medium text-slate-900">{editingKeyName}</span>.</div>
+                      </div>
+                      <div className="px-6 pb-6 space-y-3">
+                        <label className="block text-sm font-medium text-slate-700">Key</label>
+                        <input value={editingKeyValue} onChange={(e) => setEditingKeyValue(e.target.value)} className="mt-1 w-full h-10 px-3 rounded-md border border-slate-300 font-mono text-sm text-slate-900" />
+                      </div>
+                      <div className="px-6 pb-6 flex items-center gap-3">
+                        <button className="h-10 px-4 rounded-md bg-slate-900 text-white text-sm font-medium">Save</button>
+                        <button type="button" onClick={cancelEditKey} className="h-10 px-4 text-slate-500 rounded-md border border-slate-300 text-sm">Cancel</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50">
@@ -231,7 +276,7 @@ export default function Dashboard() {
                                 <EyeClosedIcon className="w-5 h-5" />
                               )}
                             </button>
-                            <button className="hover:text-slate-900" title="Edit">✎</button>
+                            <button onClick={() => startEditKey(k)} className="hover:text-slate-900" title="Edit">✎</button>
                             <button className="hover:text-slate-900" title="Rotate" onClick={() => copy(`rotated:${k.key}`)}>↻</button>
                             <button className="hover:text-red-600" title="Delete" onClick={() => remove(k.id)}>🗑️</button>
                           </div>
