@@ -8,10 +8,29 @@ function maskKeyForDisplay(fullKey) {
   return `${head}-************************-${tail}`;
 }
 
+function EyeOpenIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeClosedIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+      <path d="M3 3l18 18" />
+    </svg>
+  );
+}
+
 export default function Dashboard() {
   const [apiKeys, setApiKeys] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', type: 'dev', limitEnabled: false, limit: 1000 });
+  const [visibleKeys, setVisibleKeys] = useState({});
 
   useEffect(() => {
     setApiKeys([
@@ -136,7 +155,7 @@ export default function Dashboard() {
                       <div className="px-6 pb-6 space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-slate-700">Key Name</label>
-                          <input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Key Name" className="mt-1 w-full h-10 px-3 rounded-md border border-slate-300" />
+                          <input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Key Name" className="mt-1 w-full h-10 px-3 text-slate-900 rounded-md border border-slate-300" />
                         </div>
                         <div>
                           <div className="text-sm font-medium text-slate-700">Key Type</div>
@@ -162,13 +181,13 @@ export default function Dashboard() {
                             <input type="checkbox" checked={formData.limitEnabled} onChange={(e) => setFormData({ ...formData, limitEnabled: e.target.checked })} />
                             Limit monthly usage
                           </label>
-                          <input type="number" min="1" value={formData.limit} onChange={(e) => setFormData({ ...formData, limit: Number(e.target.value) })} disabled={!formData.limitEnabled} className="mt-2 w-full h-10 px-3 rounded-md border border-slate-300 disabled:bg-slate-100" />
+                          <input type="number" min="1" value={formData.limit} onChange={(e) => setFormData({ ...formData, limit: Number(e.target.value) })} disabled={!formData.limitEnabled} className="mt-2 w-full h-10 px-3 text-slate-500 rounded-md border border-slate-300 disabled:bg-slate-100" />
                           <div className="mt-1 text-xs text-slate-500">If the combined usage of all your keys exceeds your plan's limit, all requests will be rejected.</div>
                         </div>
                       </div>
                       <div className="px-6 pb-6 flex items-center gap-3">
                         <button className="h-10 px-4 rounded-md bg-slate-900 text-white text-sm font-medium">Create</button>
-                        <button type="button" onClick={() => setShowAddForm(false)} className="h-10 px-4 rounded-md border border-slate-300 text-sm">Cancel</button>
+                        <button type="button" onClick={() => setShowAddForm(false)} className="h-10 px-4 text-slate-500 rounded-md border border-slate-300 text-sm">Cancel</button>
                       </div>
                     </form>
                   </div>
@@ -194,13 +213,24 @@ export default function Dashboard() {
                         <td className="px-6 py-3 text-slate-500">{k.usage}</td>
                         <td className="px-6 py-3">
                           <div className="flex items-center gap-3">
-                            <code className="font-mono text-xs bg-slate-100 rounded px-2 py-1">{maskKeyForDisplay(k.key)}</code>
+                            <code className="font-mono text-xs text-slate-900 bg-slate-100 rounded px-2 py-1">{visibleKeys[k.id] ? k.key : maskKeyForDisplay(k.key)}</code>
                             <button onClick={() => copy(k.key)} className="text-slate-500 hover:text-slate-700" title="Copy">⎘</button>
                           </div>
                         </td>
                         <td className="px-6 py-3">
                           <div className="flex items-center gap-3 text-slate-600">
-                            <button className="hover:text-slate-900" title="View">👁️</button>
+                            <button
+                              onClick={() => setVisibleKeys((prev) => ({ ...prev, [k.id]: !prev[k.id] }))}
+                              className="hover:text-slate-900"
+                              title={visibleKeys[k.id] ? 'Hide key' : 'Show key'}
+                              aria-pressed={Boolean(visibleKeys[k.id])}
+                            >
+                              {visibleKeys[k.id] ? (
+                                <EyeOpenIcon className="w-5 h-5" />
+                              ) : (
+                                <EyeClosedIcon className="w-5 h-5" />
+                              )}
+                            </button>
                             <button className="hover:text-slate-900" title="Edit">✎</button>
                             <button className="hover:text-slate-900" title="Rotate" onClick={() => copy(`rotated:${k.key}`)}>↻</button>
                             <button className="hover:text-red-600" title="Delete" onClick={() => remove(k.id)}>🗑️</button>
