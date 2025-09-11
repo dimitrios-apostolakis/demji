@@ -117,10 +117,10 @@ export default function Dashboard() {
               <span className="h-2 w-2 rounded-full bg-emerald-500" /> Operational
             </span>
             <div className="flex items-center gap-2">
-              <button className="h-9 w-9 rounded-full bg-slate-100" />
-              <button className="h-9 w-9 rounded-full bg-slate-100" />
-              <button className="h-9 w-9 rounded-full bg-slate-100" />
-              <button className="h-9 w-9 rounded-full bg-slate-100" />
+              <button className="h-9 w-9 rounded-full bg-slate-100 cursor-pointer" />
+              <button className="h-9 w-9 rounded-full bg-slate-100 cursor-pointer" />
+              <button className="h-9 w-9 rounded-full bg-slate-100 cursor-pointer" />
+              <button className="h-9 w-9 rounded-full bg-slate-100 cursor-pointer" />
             </div>
           </div>
 
@@ -145,7 +145,7 @@ export default function Dashboard() {
                   <div className="flex items-center gap-3">
                     <div className="h-4 w-4 rounded-full bg-white/70" />
                     <div className="text-sm">Pay as you go</div>
-                    <button className="ml-auto inline-flex items-center gap-2 rounded-md bg-white/10 hover:bg-white/20 px-3 py-1.5 text-sm font-medium">
+                    <button className="ml-auto inline-flex items-center gap-2 rounded-md bg-white/10 hover:bg-white/20 px-3 py-1.5 text-sm font-medium cursor-pointer">
                       Manage Plan
                     </button>
                   </div>
@@ -161,7 +161,7 @@ export default function Dashboard() {
                     <div className="font-semibold text-slate-900">API Keys</div>
                     <div className="text-sm text-slate-500">The key is used to authenticate your requests to the Research API.</div>
                   </div>
-                  <button onClick={() => setShowAddForm(true)} className="inline-flex items-center justify-center h-9 px-3 rounded-md bg-slate-900 text-white text-sm font-medium">+
+                  <button onClick={() => setShowAddForm(true)} className="inline-flex items-center justify-center h-9 px-3 rounded-md bg-slate-900 text-white text-sm font-medium cursor-pointer">+
                   </button>
                 </div>
               </div>
@@ -209,8 +209,8 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div className="px-6 pb-6 flex items-center gap-3">
-                        <button className="h-10 px-4 rounded-md bg-slate-900 text-white text-sm font-medium">Create</button>
-                        <button type="button" onClick={() => setShowAddForm(false)} className="h-10 px-4 text-slate-500 rounded-md border border-slate-300 text-sm">Cancel</button>
+                        <button className="h-10 px-4 rounded-md bg-slate-900 text-white text-sm font-medium cursor-pointer">Create</button>
+                        <button type="button" onClick={() => setShowAddForm(false)} className="h-10 px-4 text-slate-500 rounded-md border border-slate-300 text-sm cursor-pointer">Cancel</button>
                       </div>
                     </form>
                   </div>
@@ -231,8 +231,8 @@ export default function Dashboard() {
                         <input value={editingKeyValue} onChange={(e) => setEditingKeyValue(e.target.value)} className="mt-1 w-full h-10 px-3 rounded-md border border-slate-300 font-mono text-sm text-slate-900" />
                       </div>
                       <div className="px-6 pb-6 flex items-center gap-3">
-                        <button className="h-10 px-4 rounded-md bg-slate-900 text-white text-sm font-medium">Save</button>
-                        <button type="button" onClick={cancelEditKey} className="h-10 px-4 text-slate-500 rounded-md border border-slate-300 text-sm">Cancel</button>
+                        <button className="h-10 px-4 rounded-md bg-slate-900 text-white text-sm font-medium cursor-pointer">Save</button>
+                        <button type="button" onClick={cancelEditKey} className="h-10 px-4 text-slate-500 rounded-md border border-slate-300 text-sm cursor-pointer">Cancel</button>
                       </div>
                     </form>
                   </div>
@@ -259,14 +259,14 @@ export default function Dashboard() {
                         <td className="px-6 py-3">
                           <div className="flex items-center gap-3">
                             <code className="font-mono text-xs text-slate-900 bg-slate-100 rounded px-2 py-1">{visibleKeys[k.id] ? k.key : maskKeyForDisplay(k.key)}</code>
-                            <button onClick={() => copy(k.key)} className="text-slate-500 hover:text-slate-700" title="Copy">⎘</button>
+                            <button onClick={() => copy(k.key)} className="text-slate-500 hover:text-slate-700 cursor-copy" title="Copy">⎘</button>
                           </div>
                         </td>
                         <td className="px-6 py-3">
                           <div className="flex items-center gap-3 text-slate-600">
                             <button
                               onClick={() => setVisibleKeys((prev) => ({ ...prev, [k.id]: !prev[k.id] }))}
-                              className="hover:text-slate-900"
+                              className="hover:text-slate-900 cursor-pointer"
                               title={visibleKeys[k.id] ? 'Hide key' : 'Show key'}
                               aria-pressed={Boolean(visibleKeys[k.id])}
                             >
@@ -276,9 +276,9 @@ export default function Dashboard() {
                                 <EyeClosedIcon className="w-5 h-5" />
                               )}
                             </button>
-                            <button onClick={() => startEditKey(k)} className="hover:text-slate-900" title="Edit">✎</button>
-                            <button className="hover:text-slate-900" title="Rotate" onClick={() => copy(`rotated:${k.key}`)}>↻</button>
-                            <button className="hover:text-red-600" title="Delete" onClick={() => remove(k.id)}>🗑️</button>
+                            <button onClick={() => startEditKey(k)} className="hover:text-slate-900 cursor-pointer" title="Edit">✎</button>
+                            <button className="hover:text-slate-900 cursor-pointer" title="Rotate" onClick={() => copy(`rotated:${k.key}`)}>↻</button>
+                            <button className="hover:text-red-600 cursor-pointer" title="Delete" onClick={() => remove(k.id)}>🗑️</button>
                           </div>
                         </td>
                       </tr>
