@@ -1,6 +1,30 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
+### Supabase Setup
+
+1) Create a table `api_keys` in your Supabase project:
+
+```sql
+create table if not exists public.api_keys (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  type text not null default 'dev',
+  usage bigint not null default 0,
+  key text not null,
+  created_at timestamp with time zone not null default now()
+);
+```
+
+2) Add environment variables in `.env.local` (create file if not exists):
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+
+3) Restart the dev server.
+
 
 First, run the development server:
 

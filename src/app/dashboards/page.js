@@ -36,27 +36,53 @@ export default function Dashboard() {
   const [editingKeyName, setEditingKeyName] = useState('');
 
   useEffect(() => {
-    setApiKeys([
-      { id: 'k1', name: 'default', type: 'dev', usage: 0, key: 'tvly-dev-abcdefghijklmnopqrstuvwxyz012345', createdAt: '2025-01-01' },
-      { id: 'k2', name: 'jim', type: 'dev', usage: 0, key: 'tvly-dev-0123456789abcdefghijklmnopqrstuvwxyz', createdAt: '2025-01-02' },
-      { id: 'k3', name: 'asdf', type: 'dev', usage: 0, key: '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', createdAt: '2025-01-03' }
-    ]);
+    // Initial load from API
+    (async () => {
+      try {
+        const res = await fetch('/api/keys', { cache: 'no-store' });
+        if (res.ok) {
+          const rows = await res.json();
+          setApiKeys(rows.map((r) => ({
+            id: r.id,
+            name: r.name,
+            type: r.type,
+            usage: r.usage ?? 0,
+            key: r.api_key ?? r.key,
+            createdAt: r.created_at?.slice(0, 10)
+          })));
+        }
+      } catch {}
+    })();
   }, []);
 
   const planName = 'Researcher';
   const apiUsage = useMemo(() => ({ used: 0, limit: 1000 }), []);
 
-  const handleCreate = (e) => {
+  const handleCreate = async (e) => {
     e.preventDefault();
-    const newKey = {
-      id: String(Date.now()),
+    const payload = {
       name: formData.name || 'key',
       type: formData.type,
       usage: 0,
-      key: `tvly-${formData.type}-${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`,
-      createdAt: new Date().toISOString().slice(0, 10)
+      key: `tvly-${formData.type}-${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`
     };
-    setApiKeys((prev) => [newKey, ...prev]);
+    try {
+      const res = await fetch('/api/keys', { method: 'POST', body: JSON.stringify(payload) });
+      if (res.ok) {
+        const created = await res.json();
+        setApiKeys((prev) => [
+          {
+            id: created.id,
+            name: created.name,
+            type: created.type,
+            usage: created.usage ?? 0,
+            key: created.api_key ?? created.key,
+            createdAt: created.created_at?.slice(0, 10)
+          },
+          ...prev
+        ]);
+      }
+    } catch {}
     setShowAddForm(false);
     setFormData({ name: '', type: 'dev', limitEnabled: false, limit: 1000 });
   };
@@ -65,7 +91,12 @@ export default function Dashboard() {
     try { await navigator.clipboard.writeText(text); } catch {}
   };
 
-  const remove = (id) => setApiKeys((prev) => prev.filter((k) => k.id !== id));
+  const remove = async (id) => {
+    try {
+      const res = await fetch(`/api/keys/${id}`, { method: 'DELETE' });
+      if (res.ok) setApiKeys((prev) => prev.filter((k) => k.id !== id));
+    } catch {}
+  };
 
   const startEditKey = (keyObj) => {
     setEditingKeyId(keyObj.id);
@@ -79,9 +110,15 @@ export default function Dashboard() {
     setEditingKeyName('');
   };
 
-  const saveEditKey = () => {
+  const saveEditKey = async () => {
     if (!editingKeyId) return;
-    setApiKeys((prev) => prev.map((k) => (k.id === editingKeyId ? { ...k, key: editingKeyValue } : k)));
+    try {
+      const res = await fetch(`/api/keys/${editingKeyId}`, { method: 'PATCH', body: JSON.stringify({ key: editingKeyValue }) });
+      if (res.ok) {
+        const updated = await res.json();
+        setApiKeys((prev) => prev.map((k) => (k.id === updated.id ? { ...k, key: (updated.api_key ?? updated.key) } : k)));
+      }
+    } catch {}
     setEditingKeyId(null);
     setEditingKeyValue('');
     setEditingKeyName('');
