@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Notification from '@/components/Notification';
 
 function maskKeyForDisplay(fullKey) {
   const head = fullKey.slice(0, 8);
@@ -34,6 +35,7 @@ export default function Dashboard() {
   const [editingKeyId, setEditingKeyId] = useState(null);
   const [editingKeyValue, setEditingKeyValue] = useState('');
   const [editingKeyName, setEditingKeyName] = useState('');
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
   useEffect(() => {
     // Initial load from API
@@ -64,7 +66,7 @@ export default function Dashboard() {
       name: formData.name || 'key',
       type: formData.type,
       usage: 0,
-      key: `tvly-${formData.type}-${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`
+      key: `demji-${formData.type}-${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`
     };
     try {
       const res = await fetch('/api/keys', { method: 'POST', body: JSON.stringify(payload) });
@@ -81,21 +83,38 @@ export default function Dashboard() {
           },
           ...prev
         ]);
+        setToast({ show: true, message: `API key "${created.name}" created successfully`, type: 'success' });
+      } else {
+        setToast({ show: true, message: 'Failed to create API key', type: 'error' });
       }
-    } catch {}
+    } catch {
+      setToast({ show: true, message: 'Failed to create API key', type: 'error' });
+    }
     setShowAddForm(false);
     setFormData({ name: '', type: 'dev', limitEnabled: false, limit: 1000 });
   };
 
   const copy = async (text) => {
-    try { await navigator.clipboard.writeText(text); } catch {}
+    try { 
+      await navigator.clipboard.writeText(text);
+      setToast({ show: true, message: 'Copied API Key to clipboard', type: 'success' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+    } catch {}
   };
 
   const remove = async (id) => {
+    const keyToDelete = apiKeys.find(k => k.id === id);
     try {
       const res = await fetch(`/api/keys/${id}`, { method: 'DELETE' });
-      if (res.ok) setApiKeys((prev) => prev.filter((k) => k.id !== id));
-    } catch {}
+      if (res.ok) {
+        setApiKeys((prev) => prev.filter((k) => k.id !== id));
+        setToast({ show: true, message: `API key "${keyToDelete?.name || 'Unknown'}" deleted successfully`, type: 'error' });
+      } else {
+        setToast({ show: true, message: 'Failed to delete API key', type: 'error' });
+      }
+    } catch {
+      setToast({ show: true, message: 'Failed to delete API key', type: 'error' });
+    }
   };
 
   const startEditKey = (keyObj) => {
@@ -117,8 +136,13 @@ export default function Dashboard() {
       if (res.ok) {
         const updated = await res.json();
         setApiKeys((prev) => prev.map((k) => (k.id === updated.id ? { ...k, key: (updated.api_key ?? updated.key) } : k)));
+        setToast({ show: true, message: `API key "${editingKeyName}" updated successfully`, type: 'success' });
+      } else {
+        setToast({ show: true, message: 'Failed to update API key', type: 'error' });
       }
-    } catch {}
+    } catch {
+      setToast({ show: true, message: 'Failed to update API key', type: 'error' });
+    }
     setEditingKeyId(null);
     setEditingKeyValue('');
     setEditingKeyName('');
@@ -327,6 +351,14 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+
+      {/* Toast Notification */}
+      <Notification 
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ show: false, message: '', type: 'success' })}
+      />
     </div>
   );
 }
